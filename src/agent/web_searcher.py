@@ -24,7 +24,12 @@ class WebSearcher:
     def web_search(self, state: AgentState) -> dict:
         grounding_llm = GroundingLLM()
         response = grounding_llm(state["search_query"])
-        result = response.text + "\n\n" + grounding_llm.get_citations(response)
+
+        if grounding_llm.include_citations:
+            result = grounding_llm.map_text_with_citations(response.to_dict())
+        else:
+            result = response.text
+
         return {"messages": AIMessage(result)}
 
     def post_process(self, state: AgentState) -> dict:
