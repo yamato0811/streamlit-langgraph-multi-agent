@@ -78,7 +78,7 @@ class Supervisor:
                 "role": "assistant",
                 "title": "Supervisorの思考が完了しました。",
                 "icon": "👨‍🏫",
-                "content": response.content,
+                "content": response.content[0],
             }
 
             return Command(
@@ -90,16 +90,11 @@ class Supervisor:
             )
 
         else:
-            if type(response.content) == list:
-                content = response.content[0]
-            else:
-                content = response.content
-
             display_message_dict = {
                 "role": "assistant",
                 "title": "Supervisorの回答",
                 "icon": "👨‍🏫",
-                "content": content,
+                "content": response.content,
             }
             return Command(
                 goto="end_node",
