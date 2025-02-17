@@ -68,8 +68,6 @@ def main() -> None:
         st.stop()
 
     # Core Algorithm
-    supervisor.write_mermaid_graph(supervisor.graph)
-
     inputs = {"messages": user_input}
     config = {"configurable": {"thread_id": THREAD_ID}}
 
