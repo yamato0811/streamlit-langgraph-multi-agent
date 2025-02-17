@@ -71,17 +71,40 @@ class Supervisor:
                     {**tool_call, "args": {**tool_call["args"], "state": state}}
                 )
                 invoke_result = json.loads(tool_response.content)
+
+            display_message_dict = {
+                "role": "assistant",
+                "title": "Supervisorの思考が完了しました。",
+                "icon": "👨‍🏫",
+                "content": response.content,
+            }
+
             return Command(
                 goto=invoke_result["goto"],
                 update={
                     **invoke_result["update"],
+                    "display_message_dict": display_message_dict,
                 },
             )
 
         else:
+            if type(response) == list:
+                content = response[0]
+            else:
+                content = response.content
+
+            display_message_dict = {
+                "role": "assistant",
+                "title": "Supervisorの回答",
+                "icon": "👨‍🏫",
+                "content": content,
+            }
             return Command(
                 goto="end_node",
-                update={"messages": response},
+                update={
+                    "messages": response,
+                    "display_message_dict": display_message_dict,
+                },
             )
 
     def end_node(self, state: AgentState) -> Command[Literal[END]]:
@@ -89,7 +112,7 @@ class Supervisor:
 
         return Command(
             goto=END,
-            update={"is_finished": True},
+            update={"is_finished": True, "display_message_dict": None},
         )
 
     # ================

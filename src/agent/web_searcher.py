@@ -30,8 +30,18 @@ class WebSearcher:
         else:
             result = response.text
 
-        return {"messages": AIMessage(result)}
+        display_message_dict = {
+            "role": "assistant",
+            "title": "Web Searcherの検索結果",
+            "icon": "🔍",
+            "content": result,
+        }
+
+        return {
+            "messages": AIMessage(result),
+            "display_message_dict": display_message_dict,
+        }
 
     def post_process(self, state: AgentState) -> dict:
         message = AIMessage("Web検索が完了しました。")
-        return {"messages": message}
+        return {"messages": message, "display_message_dict": None}

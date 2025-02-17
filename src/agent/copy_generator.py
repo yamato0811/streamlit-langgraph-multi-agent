@@ -40,9 +40,17 @@ class CopyGenerator:
             ]
         )
 
+        display_message_dict = {
+            "role": "assistant",
+            "title": "Copy Generatorの生成結果",
+            "icon": "📝",
+            "content": response.content,
+        }
+
         return {
             "messages": response,
             "copy": response.content,
+            "display_message_dict": display_message_dict,
         }
 
     def copy_improvement(self, state: AgentState) -> dict:
@@ -62,11 +70,22 @@ class CopyGenerator:
             ]
         )
 
+        display_message_dict = {
+            "role": "assistant",
+            "title": "Copy Generatorの改善結果",
+            "icon": "📝",
+            "content": response.content,
+        }
+
         return {
             "messages": response,
             "copy": response.content,
+            "display_message_dict": display_message_dict,
         }
 
     def post_process(self, state: AgentState) -> dict:
         message = AIMessage("コピー生成が完了しました。")
-        return {"messages": message}
+        return {
+            "messages": message,
+            "display_message_dict": None,
+        }
