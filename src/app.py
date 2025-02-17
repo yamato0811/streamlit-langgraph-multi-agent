@@ -6,6 +6,7 @@ from agent.supervisor import Supervisor
 from agent.web_searcher import WebSearcher
 from models.grounding_llm import GroundingLLM
 from models.llm import LLM
+from utils.app_util import display_message, display_messages
 
 load_dotenv()
 
@@ -15,18 +16,14 @@ TEMPERATURE = 1.0
 
 
 def main() -> None:
-    # ================
     # Page Config
-    # ================
     st.set_page_config(
         page_title="Streamlit×LangGraph MultiAgent | コピー生成アプリケーション",
         page_icon="🤖",
     )
     st.title("Streamlit×LangGraph MultiAgent | コピー生成アプリケーション")
 
-    # ================
-    # Init Actor
-    # ================
+    # Init Actors
     llm = LLM(MODEL, TEMPERATURE)
     grounding_llm = GroundingLLM()
 
@@ -34,16 +31,43 @@ def main() -> None:
     web_searcher = WebSearcher(grounding_llm)
     supervisor = Supervisor(llm, copy_generator, web_searcher)
 
-    # ================
+    # Session State
+    if "is_start_chat" not in st.session_state:
+        st.session_state.is_start_chat = False
+    if "messages" not in st.session_state:
+        init_display_message_dict = {
+            "role": "assistant",
+            "title": "Supervisorの回答",
+            "icon": "👨‍🏫",
+            "content": """
+            こんにちは！何かお手伝いできることはありますか？
+            以下の機能を利用することができます。
+
+            - Web検索
+            - コピー生成
+            """,
+        }
+        st.session_state.messages = [init_display_message_dict]
+
     # User Input
-    # ================
     user_input = st.chat_input("メッセージを入力してください:")
-    if not user_input:
+    if user_input:
+        display_message_dict = {
+            "role": "user",
+            "title": "ユーザーの入力",
+            "icon": "👤",
+            "content": user_input,
+        }
+        st.session_state.messages.append(display_message_dict)
+        st.session_state.is_start_chat = True
+
+    # Display Messages
+    display_messages(st.session_state.messages)
+
+    if not st.session_state.is_start_chat:
         st.stop()
 
-    # ================
     # Core Algorithm
-    # ================
     supervisor.write_mermaid_graph(supervisor.graph)
 
     inputs = {"messages": user_input}
@@ -53,13 +77,8 @@ def main() -> None:
         inputs, config, stream_mode="values", subgraphs=True
     ):
         if display_message_dict := event[1].get("display_message_dict"):
-            with st.chat_message(display_message_dict["role"]):
-                with st.expander(
-                    display_message_dict["title"],
-                    expanded=True,
-                    icon=display_message_dict["icon"],
-                ):
-                    st.write(display_message_dict["content"], unsafe_allow_html=True)
+            display_message(display_message_dict)
+            st.session_state.messages.append(display_message_dict)
 
 
 if __name__ == "__main__":
