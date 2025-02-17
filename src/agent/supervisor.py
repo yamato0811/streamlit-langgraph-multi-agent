@@ -88,8 +88,8 @@ class Supervisor:
             )
 
         else:
-            if type(response) == list:
-                content = response[0]
+            if type(response.content) == list:
+                content = response.content[0]
             else:
                 content = response.content
 
