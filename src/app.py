@@ -71,9 +71,13 @@ def main() -> None:
     inputs = {"messages": user_input}
     config = {"configurable": {"thread_id": THREAD_ID}}
 
+    event_prev = {}
     for event in supervisor.graph.stream(
         inputs, config, stream_mode="values", subgraphs=True
     ):
+        if event_prev == event[1]:  # Skip when transition between parent and child
+            continue
+        event_prev = event[1]
         if display_message_dict := event[1].get("display_message_dict"):
             display_message(display_message_dict)
             st.session_state.messages.append(display_message_dict)
