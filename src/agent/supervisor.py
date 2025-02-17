@@ -1,3 +1,5 @@
+import json
+
 from langgraph.graph import END, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Command
@@ -68,7 +70,13 @@ class Supervisor:
                 tool_response = tool.invoke(
                     {**tool_call, "args": {**tool_call["args"], "state": state}}
                 )
-            return tool_response
+                invoke_result = json.loads(tool_response.content)
+            return Command(
+                goto=invoke_result["goto"],
+                update={
+                    **invoke_result["update"],
+                },
+            )
 
         else:
             return Command(
