@@ -1,0 +1,5 @@
+langgraph==0.2.72
+langchain-core==0.3.35
+streamlit==1.42.0
+langchain-google-vertexai==2.0.13
+python-dotenv==1.0.1

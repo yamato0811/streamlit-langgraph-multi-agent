@@ -1,0 +1,54 @@
+from typing import Annotated
+
+from langchain_core.tools import tool
+from langchain_core.tools.base import InjectedToolCallId
+from langgraph.types import Command
+
+
+@tool
+def handoff_to_web_searcher(
+    search_query: str,
+    tool_call_id: Annotated[str, InjectedToolCallId],
+) -> Command:
+    """
+    web_searcherに引き継ぎます
+
+    web_searcherの役割は以下の通り
+    - ユーザーの要望に基づいてWeb検索を行い、その結果を整理して返します。
+    """
+    print("## Called Web Searcher")
+
+    tool_msg = {
+        "role": "tool",
+        "content": "Successfully transferred to Web Searcher.",
+        "tool_call_id": tool_call_id,
+    }
+
+    return Command(
+        goto="web_searcher_subgraph",
+        update={"messages": [tool_msg], "search_query": search_query},
+    )
+
+
+@tool
+def handoff_to_copy_generator(
+    tool_call_id: Annotated[str, InjectedToolCallId],
+) -> Command:
+    """
+    copy_generatorに引き継ぎます
+
+    copy_generatorの役割は以下の通り
+    - テーマに基づいてコピー文を生成します
+    """
+    print("## Called Copy Generator")
+
+    tool_msg = {
+        "role": "tool",
+        "content": "Successfully transferred to Copy Generator.",
+        "tool_call_id": tool_call_id,
+    }
+
+    return Command(
+        goto="copy_generator_subgraph",
+        update={"messages": [tool_msg]},
+    )

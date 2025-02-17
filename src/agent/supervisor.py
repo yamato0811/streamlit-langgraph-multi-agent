@@ -1,0 +1,93 @@
+from langgraph.graph import END, StateGraph
+from langgraph.graph.state import CompiledStateGraph
+from langgraph.types import Command
+from typing_extensions import Literal
+
+from agent.copy_generator import CopyGenerator
+from agent.state import AgentState
+from agent.tools import handoff_to_copy_generator, handoff_to_web_searcher
+from agent.web_searcher import WebSearcher
+from models.llm import LLM
+
+
+class Supervisor:
+    def __init__(
+        self, llm: LLM, copy_generator: CopyGenerator, web_searcher: WebSearcher
+    ) -> None:
+        self.tools = [handoff_to_web_searcher, handoff_to_copy_generator]
+        self.tools_by_name = {tool.name: tool for tool in self.tools}
+        self.llm_with_tools = llm.model.bind_tools(self.tools)
+        self.graph = self.build_graph(copy_generator, web_searcher)
+
+    def build_graph(
+        self, copy_generator: CopyGenerator, web_searcher: WebSearcher
+    ) -> CompiledStateGraph:
+        graph_builder = StateGraph(AgentState)
+        graph_builder.add_node(self.supervisor)
+        graph_builder.add_node("copy_generator_subgraph", copy_generator.graph)
+        graph_builder.add_node("web_searcher_subgraph", web_searcher.graph)
+        graph_builder.add_node(self.end_node)
+        graph_builder.add_edge("copy_generator_subgraph", "supervisor")
+        graph_builder.add_edge("web_searcher_subgraph", "supervisor")
+        graph_builder.set_entry_point("supervisor")
+        return graph_builder.compile()
+
+    def supervisor(self, state: AgentState) -> Command[
+        Literal[
+            "copy_generator_subgraph",
+            "web_searcher_subgraph",
+            "end_node",
+        ]
+    ]:
+        response = self.llm_with_tools.invoke(
+            [
+                (
+                    "system",
+                    """
+                    あなたは、Sub Agentの会話を管理する役割を持つ監督者です。
+                    ユーザーのリクエストに基づき、どのSub Agentを指示するかを決定します。
+
+                    **Sub Agent呼び出しの必要がなければ、Sub Agentを呼び出す必要はありません。**
+                    """,
+                )
+            ]
+            + state["messages"]
+            + [
+                {
+                    "role": "human",
+                    "content": "会話をもとにSub Agentを呼び出してください。呼び出す必要がなければSub Agentの出力結果を報告してください。",
+                }
+            ]
+        )
+
+        state["messages"].append(response)
+
+        if len(response.tool_calls) > 0:
+            for tool_call in response.tool_calls:
+                tool = self.tools_by_name[tool_call["name"]]
+                tool_response = tool.invoke(
+                    {**tool_call, "args": {**tool_call["args"], "state": state}}
+                )
+            return tool_response
+
+        else:
+            return Command(
+                goto="end_node",
+                update={"messages": response},
+            )
+
+    def end_node(self, state: AgentState) -> Command[Literal[END]]:
+        print("Node: end_node" + "\n")
+
+        return Command(
+            goto=END,
+            update={"is_finished": True},
+        )
+
+    # ================
+    # Helper
+    # ================
+    def write_mermaid_graph(self, graph: CompiledStateGraph) -> None:
+        print("Writing graph.md")
+        with open("graph.md", "w") as file:
+            file.write(f"```mermaid\n{graph.get_graph(xray=1).draw_mermaid()}```")
