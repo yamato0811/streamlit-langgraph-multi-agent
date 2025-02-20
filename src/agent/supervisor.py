@@ -57,10 +57,14 @@ class Supervisor:
             ]
             + state["messages"]
             + [
-                {
-                    "role": "human",
-                    "content": "会話を基にSub Agentを呼び出してください。呼び出す必要がなければSub Agentの出力結果を報告してください。",
-                }
+                (
+                    "human",
+                    """
+                    <instructions>
+                    会話を基にSub Agentを呼び出してください。呼び出す必要がなければSub Agentの出力結果を報告してください。
+                    </instructions>
+                    """,
+                )
             ]
         )
 
@@ -119,3 +123,7 @@ class Supervisor:
         print("Writing graph.md")
         with open("graph.md", "w") as file:
             file.write(f"```mermaid\n{graph.get_graph(xray=1).draw_mermaid()}```")
+
+
+# - Supervisorのhuman messageはどう書く？（59行目）
+# - Supervisorの会話履歴がENDノードに行くと消えてしまう
