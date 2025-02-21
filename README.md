@@ -2,6 +2,8 @@
 
 本レポジトリでは、StreamlitとLangGraphを用いた、Supervisor型マルチエージェントによる簡易的な広告コピー文生成アプリのサンプルコードを公開している。
 
+[![デモ動画](./images/demo_movie.gif)](./images/demo_movie.gif)
+
 ## 特徴
 - **LangGraphによるMulti-Agentの実装**: LangGraphを用いて、Supervisor型マルチエージェントを実装している。
 - **StreamlitによるWebアプリケーション化**: Streamlitを用いて、Webアプリケーション化している。
