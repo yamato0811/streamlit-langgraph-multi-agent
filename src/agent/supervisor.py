@@ -123,7 +123,3 @@ class Supervisor:
         print("Writing graph.md")
         with open("graph.md", "w") as file:
             file.write(f"```mermaid\n{graph.get_graph(xray=1).draw_mermaid()}```")
-
-
-# - Supervisorのhuman messageはどう書く？（59行目）
-# - Supervisorの会話履歴がENDノードに行くと消えてしまう
