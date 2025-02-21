@@ -12,7 +12,7 @@ load_dotenv()
 
 MODEL = "gemini"
 THREAD_ID = "1"
-TEMPERATURE = 1.0
+TEMPERATURE = 0.2
 
 
 def main() -> None:
@@ -34,7 +34,7 @@ def main() -> None:
     # Session State
     if "is_start_chat" not in st.session_state:
         st.session_state.is_start_chat = False
-    if "messages" not in st.session_state:
+    if "display_messages" not in st.session_state:
         init_display_message_dict = {
             "role": "assistant",
             "title": "Supervisorの回答",
@@ -47,7 +47,7 @@ def main() -> None:
             - コピー生成
             """,
         }
-        st.session_state.messages = [init_display_message_dict]
+        st.session_state.display_messages = [init_display_message_dict]
 
     # User Input
     user_input = st.chat_input("メッセージを入力してください:")
@@ -58,11 +58,11 @@ def main() -> None:
             "icon": "👤",
             "content": user_input,
         }
-        st.session_state.messages.append(display_message_dict)
+        st.session_state.display_messages.append(display_message_dict)
         st.session_state.is_start_chat = True
 
     # Display Messages
-    display_messages(st.session_state.messages)
+    display_messages(st.session_state.display_messages)
 
     if not st.session_state.is_start_chat:
         st.stop()
@@ -80,7 +80,7 @@ def main() -> None:
         event_prev = event[1]
         if display_message_dict := event[1].get("display_message_dict"):
             display_message(display_message_dict)
-            st.session_state.messages.append(display_message_dict)
+            st.session_state.display_messages.append(display_message_dict)
 
 
 if __name__ == "__main__":

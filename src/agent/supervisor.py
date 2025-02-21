@@ -47,11 +47,11 @@ class Supervisor:
                     "system",
                     """
                     あなたは、Sub Agentの会話を管理する役割を持つ監督者です。
-                    ユーザーのリクエストに基づき、どのSub Agentを指示するかを決定します。
+                    ユーザーのリクエストに基づき、どのSub Agentを指示するか（どのツールを呼び出すか）を決定します。
 
-                    なお、以下のルールを厳守して下さい。
-                    - **Sub Agent呼び出しの必要がなければ、Sub Agentを呼び出す必要はありません。**
-                    - **ユーザーが利用可能なツール以外の要望をした場合、ツールを利用せずに対応して下さい。Sub Agentを呼び出す必要はありません。**
+                    - Sub Agent呼び出しが必要あれば、Sub Agentを呼び出してください。その際、なぜそのSub Agentを呼び出すのかの理由も説明してください。
+                    - **Sub Agent呼び出しが不要な場合は、Sub Agentを呼び出す必要はありません。** その場合は、通常の応答をしてください。
+                    - 直前にSub Agentを呼び出した場合、Sub Agentの結果を整理して報告してください。
                     """,
                 )
             ]
@@ -61,7 +61,7 @@ class Supervisor:
                     "human",
                     """
                     <instructions>
-                    会話を基にSub Agentを呼び出してください。呼び出す必要がなければSub Agentの出力結果を報告してください。
+                    会話を基にSub Agentを呼び出してください。呼び出しの必要がなければ、Sub Agentの結果を整理して報告してください。
                     </instructions>
                     """,
                 )
@@ -82,7 +82,7 @@ class Supervisor:
                 "role": "assistant",
                 "title": "Supervisorの思考が完了しました。",
                 "icon": "👨‍🏫",
-                "content": response.content[0],
+                "content": response.content,
             }
 
             return Command(
